@@ -7,7 +7,7 @@ const server = http.createServer(app);
 // Configurer le serveur WebSocket
 setupWebSocket(server);
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Serveur en cours d'exécution sur http://localhost:${PORT}`);
 });
