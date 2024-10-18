@@ -6,7 +6,7 @@ const app = express();
 
 // Configurer CORS
 app.use(cors({
-  origin: '*',
+  origin: [process.env.CORS_ORIGIN],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Authorization'],
