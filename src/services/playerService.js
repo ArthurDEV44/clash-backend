@@ -1,87 +1,64 @@
 const db = require('../db/db');
 
 exports.getAllPlayers = () => {
-  return new Promise((resolve, reject) => {
-    db.all('SELECT * FROM players', [], (err, players) => {
-      if (err) {
-        return reject(err);
-      }
+  try {
+    // Récupérer tous les joueurs
+    const players = db.prepare('SELECT * FROM players').all();
 
-      const playerDataPromises = players.map(player => {
-        return new Promise((resolve, reject) => {
-          db.all('SELECT map_index, kills, classement FROM player_maps WHERE player_id = ?', [player.id], (err, maps) => {
-            if (err) {
-              reject(err);
-            } else {
-              player.maps = maps;
-              resolve();
-            }
-          });
-        });
-      });
-
-      Promise.all(playerDataPromises)
-        .then(() => {
-          resolve(players);
-        })
-        .catch(err => {
-          reject(err);
-        });
+    // Pour chaque joueur, récupérer ses maps
+    players.forEach(player => {
+      const maps = db.prepare('SELECT map_index, kills, classement FROM player_maps WHERE player_id = ?').all(player.id);
+      player.maps = maps;
     });
-  });
+
+    return players;
+  } catch (err) {
+    throw err;
+  }
 };
 
 exports.createPlayer = (name) => {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO players (name) VALUES (?)`,
-      [name],
-      function (err) {
-        if (err) {
-          return reject(err);
-        }
+  try {
+    const stmt = db.prepare('INSERT INTO players (name) VALUES (?)');
+    const info = stmt.run(name);
 
-        const newPlayer = { id: this.lastID, name };
-        resolve(newPlayer);
-      }
-    );
-  });
+    const newPlayer = { id: info.lastInsertRowid, name };
+    return newPlayer;
+  } catch (err) {
+    throw err;
+  }
 };
 
 exports.updatePlayerMaps = (playerId, maps) => {
-  return new Promise((resolve, reject) => {
-    db.run(`DELETE FROM player_maps WHERE player_id = ?`, [playerId], function (err) {
-      if (err) {
-        return reject(err);
-      }
+  try {
+    // Supprimer les maps existantes du joueur
+    const deleteStmt = db.prepare('DELETE FROM player_maps WHERE player_id = ?');
+    deleteStmt.run(playerId);
 
-      const stmt = db.prepare(`INSERT INTO player_maps (player_id, map_index, kills, classement) VALUES (?, ?, ?, ?)`);
-      maps.forEach(map => {
-        stmt.run([playerId, map.map_index, map.kills, map.classement]);
-      });
-      stmt.finalize(err => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
+    // Insérer les nouvelles maps dans une transaction
+    const insertStmt = db.prepare('INSERT INTO player_maps (player_id, map_index, kills, classement) VALUES (?, ?, ?, ?)');
+    const insertMany = db.transaction((maps) => {
+      for (const map of maps) {
+        insertStmt.run(playerId, map.map_index, map.kills, map.classement);
+      }
     });
-  });
+
+    insertMany(maps);
+  } catch (err) {
+    throw err;
+  }
 };
 
 exports.deletePlayer = (playerId) => {
-  return new Promise((resolve, reject) => {
-    db.run(`DELETE FROM player_maps WHERE player_id = ?`, [playerId], function (err) {
-      if (err) {
-        return reject(err);
-      }
+  try {
+    // Supprimer les maps du joueur
+    const deleteMapsStmt = db.prepare('DELETE FROM player_maps WHERE player_id = ?');
+    deleteMapsStmt.run(playerId);
 
-      db.run(`DELETE FROM players WHERE id = ?`, [playerId], function (err) {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-    });
-  });
+    // Supprimer le joueur
+    const deletePlayerStmt = db.prepare('DELETE FROM players WHERE id = ?');
+    deletePlayerStmt.run(playerId);
+  } catch (err) {
+    throw err;
+  }
 };

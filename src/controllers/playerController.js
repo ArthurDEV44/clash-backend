@@ -1,9 +1,9 @@
 const playerService = require('../services/playerService');
 const { broadcastMessage } = require('../websocket/webSocket');
 
-exports.getAllPlayers = async (req, res) => {
+exports.getAllPlayers = (req, res) => {
   try {
-    const players = await playerService.getAllPlayers();
+    const players = playerService.getAllPlayers();
     res.json({
       message: 'success',
       data: players,
@@ -13,7 +13,7 @@ exports.getAllPlayers = async (req, res) => {
   }
 };
 
-exports.createPlayer = async (req, res) => {
+exports.createPlayer = (req, res) => {
   const { name } = req.body;
 
   if (!name || name.trim() === '') {
@@ -21,7 +21,7 @@ exports.createPlayer = async (req, res) => {
   }
 
   try {
-    const newPlayer = await playerService.createPlayer(name);
+    const newPlayer = playerService.createPlayer(name);
 
     // Informer tous les clients WebSocket du nouveau joueur
     broadcastMessage({ type: 'new_player', data: newPlayer });
@@ -35,7 +35,7 @@ exports.createPlayer = async (req, res) => {
   }
 };
 
-exports.updatePlayerMaps = async (req, res) => {
+exports.updatePlayerMaps = (req, res) => {
   const playerId = req.params.id;
   const { maps } = req.body;
 
@@ -44,18 +44,18 @@ exports.updatePlayerMaps = async (req, res) => {
   }
 
   try {
-    await playerService.updatePlayerMaps(playerId, maps);
+    playerService.updatePlayerMaps(playerId, maps);
     res.json({ message: 'Player maps updated successfully' });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
-exports.deletePlayer = async (req, res) => {
+exports.deletePlayer = (req, res) => {
   const playerId = req.params.id;
 
   try {
-    await playerService.deletePlayer(playerId);
+    playerService.deletePlayer(playerId);
 
     // Informer tous les clients WebSocket de la suppression du joueur
     broadcastMessage({ type: 'delete_player_from_list', playerId: parseInt(playerId) });
