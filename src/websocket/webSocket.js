@@ -38,6 +38,9 @@ function handleWebSocketMessage(message, ws) {
     case 'update_player':
       handleUpdatePlayer(message, ws);
       break;
+    case 'update_players':
+      broadcastMessage(message, ws);
+      break;
     case 'add_map':
     case 'remove_map':
     case 'remove_player_from_clash':
