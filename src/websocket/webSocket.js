@@ -1,3 +1,4 @@
+// websocket.js
 const WebSocket = require('ws');
 const playerService = require('../services/playerService');
 
@@ -15,16 +16,19 @@ let clashState = {
 };
 
 function setupWebSocket(server) {
-  wss = new WebSocket.Server({ server });
+  // Spécifiez le chemin '/ws' pour le WebSocket
+  wss = new WebSocket.Server({ server, path: '/ws' });
 
   wss.on('connection', (ws) => {
-    console.log('Un client WebSocket s\'est connecté.');
+    console.log("Un client WebSocket s'est connecté.");
 
     // Envoyer l'état initial au nouveau client
-    ws.send(JSON.stringify({
-      type: 'initial_state',
-      data: clashState,
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'initial_state',
+        data: clashState,
+      })
+    );
 
     ws.on('message', (message) => {
       const parsedMessage = JSON.parse(message);
@@ -32,7 +36,7 @@ function setupWebSocket(server) {
     });
 
     ws.on('close', () => {
-      console.log('Un client WebSocket s\'est déconnecté.');
+      console.log("Un client WebSocket s'est déconnecté.");
     });
   });
 }
@@ -65,25 +69,31 @@ function handleWebSocketMessage(message, ws) {
     case 'add_map':
       clashState.maps.push(message.newMapIndex);
       clashState.players = message.updatedPlayers;
-      broadcastMessage({
-        type: 'add_map',
-        newMapIndex: message.newMapIndex,
-        updatedPlayers: clashState.players,
-      }, ws);
+      broadcastMessage(
+        {
+          type: 'add_map',
+          newMapIndex: message.newMapIndex,
+          updatedPlayers: clashState.players,
+        },
+        ws
+      );
       break;
 
     case 'remove_map':
       clashState.maps.pop();
       clashState.players = message.updatedPlayers;
-      broadcastMessage({
-        type: 'remove_map',
-        mapIndexToRemove: message.mapIndexToRemove,
-        updatedPlayers: clashState.players,
-      }, ws);
+      broadcastMessage(
+        {
+          type: 'remove_map',
+          mapIndexToRemove: message.mapIndexToRemove,
+          updatedPlayers: clashState.players,
+        },
+        ws
+      );
       break;
 
     case 'remove_player_from_clash':
-      clashState.players = clashState.players.filter(player => player.id !== message.playerId);
+      clashState.players = clashState.players.filter((player) => player.id !== message.playerId);
       broadcastMessage({ type: 'remove_player_from_clash', playerId: message.playerId }, ws);
       break;
 
@@ -114,7 +124,7 @@ function handleWebSocketMessage(message, ws) {
       break;
 
     case 'delete_player_from_list':
-      clashState.playerList = clashState.playerList.filter(player => player.id !== message.playerId);
+      clashState.playerList = clashState.playerList.filter((player) => player.id !== message.playerId);
       broadcastMessage({ type: 'delete_player_from_list', playerId: message.playerId }, ws);
       break;
 
