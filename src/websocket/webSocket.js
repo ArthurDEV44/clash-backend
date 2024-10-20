@@ -13,6 +13,7 @@ let clashState = {
   clashFinished: false,
   winner: null,
   showModal: false,
+  ranking: [],
 };
 
 function setupWebSocket(server) {
@@ -99,7 +100,13 @@ function handleWebSocketMessage(message, ws) {
 
     case 'clash_started':
       clashState.clashStarted = true;
-      broadcastMessage({ type: 'clash_started' }, ws);
+      clashState.clashId = message.clashId; // Stockez l'ID du clash sur le serveur WebSocket
+      broadcastMessage({ type: 'clash_started', clashId: message.clashId }, ws); // Inclure l'ID du clash
+      break;  
+
+    case 'update_ranking':
+      clashState.ranking = message.ranking;
+      broadcastMessage({ type: 'update_ranking', ranking: clashState.ranking }, ws);
       break;
 
     case 'clash_finished':

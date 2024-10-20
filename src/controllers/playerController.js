@@ -3,16 +3,14 @@ const { broadcastMessage } = require('../websocket/webSocket');
 
 exports.getAllPlayers = (req, res) => {
   try {
-    const players = playerService.getAllPlayers();
-    res.json({
-      message: 'success',
-      data: players,
-    });
+    const players = playerService.getAllPlayers(); // Récupérer tous les joueurs disponibles
+    res.json(players);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
+// Exemple dans playerController.js
 exports.createPlayer = (req, res) => {
   const { name } = req.body;
 
@@ -26,6 +24,7 @@ exports.createPlayer = (req, res) => {
     // Informer tous les clients WebSocket du nouveau joueur
     broadcastMessage({ type: 'new_player', data: newPlayer });
 
+    // Répondre avec le nouvel ID du joueur
     res.json({
       message: 'success',
       id: newPlayer.id,
