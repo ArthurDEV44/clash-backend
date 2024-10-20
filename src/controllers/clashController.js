@@ -40,38 +40,38 @@ exports.updatePlayerScore = (req, res) => {
   }
 };
 
-exports.awardPoints = (clashId) => {
-  try {
-    // Récupérer les joueurs dans le clash avec leurs scores totaux
-    const playersInClash = db.prepare(`
-      SELECT player_id, SUM(kills) as totalKills, MIN(classement) as minRank
-      FROM clash_players
-      WHERE clash_id = ?
-      GROUP BY player_id
-      ORDER BY minRank ASC, totalKills DESC
-    `).all(clashId);
+// exports.awardPoints = (clashId) => {
+//   try {
+//     // Récupérer les joueurs dans le clash avec leurs scores totaux
+//     const playersInClash = db.prepare(`
+//       SELECT player_id, SUM(kills) as totalKills, MIN(classement) as minRank
+//       FROM clash_players
+//       WHERE clash_id = ?
+//       GROUP BY player_id
+//       ORDER BY minRank ASC, totalKills DESC
+//     `).all(clashId);
 
-    // Attribuer des points en fonction du classement
-    playersInClash.forEach((player, index) => {
-      let points = 1; // Points par défaut pour les joueurs classés au-delà du top 3
+//     // Attribuer des points en fonction du classement
+//     playersInClash.forEach((player, index) => {
+//       let points = 1; // Points par défaut pour les joueurs classés au-delà du top 3
 
-      if (index === 0) points = 10; // Premier joueur
-      else if (index === 1) points = 7; // Deuxième joueur
-      else if (index === 2) points = 5; // Troisième joueur
+//       if (index === 0) points = 10; // Premier joueur
+//       else if (index === 1) points = 7; // Deuxième joueur
+//       else if (index === 2) points = 5; // Troisième joueur
 
-      // Mettre à jour les points du joueur dans la table players
-      db.prepare(`
-        UPDATE players
-        SET points = points + ?
-        WHERE id = ?
-      `).run(points, player.player_id);
-    });
+//       // Mettre à jour les points du joueur dans la table players
+//       db.prepare(`
+//         UPDATE players
+//         SET points = points + ?
+//         WHERE id = ?
+//       `).run(points, player.player_id);
+//     });
 
-    console.log('Points awarded successfully');
-  } catch (err) {
-    console.error('Error awarding points:', err.message);
-  }
-};
+//     console.log('Points awarded successfully');
+//   } catch (err) {
+//     console.error('Error awarding points:', err.message);
+//   }
+// };
 
 exports.finishClash = (req, res) => {
   const { clashId } = req.params;
@@ -82,13 +82,13 @@ exports.finishClash = (req, res) => {
     stmt.run(true, clashId);
 
     // Attribuer des points aux joueurs
-    exports.awardPoints(clashId);
+    // exports.awardPoints(clashId);
 
     // Récupérer le classement mis à jour des joueurs
-    const ranking = db.prepare('SELECT id, name, points FROM players ORDER BY points DESC').all();
+    // const ranking = db.prepare('SELECT id, name, points FROM players ORDER BY points DESC').all();
 
     // Diffuser les points mis à jour à tous les clients WebSocket
-    broadcastMessage({ type: 'update_ranking', ranking });
+    // broadcastMessage({ type: 'update_ranking', ranking });
 
     // Diffuser le message de fin de clash à tous les clients WebSocket
     broadcastMessage({ type: 'clash_finished' });
