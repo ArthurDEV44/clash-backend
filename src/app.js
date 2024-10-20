@@ -10,7 +10,8 @@ app.use(cors({
   origin: [process.env.CORS_ORIGIN],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Authorization']
+  exposedHeaders: ['Authorization'],
+  credentials: true,
 }));
 
 app.use(express.json()); // Body parsing
